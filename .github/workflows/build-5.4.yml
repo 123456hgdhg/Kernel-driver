@@ -57,8 +57,10 @@ jobs:
           export LD=ld.lld
           
           # 强行注入你的原厂专属图纸
-          cp $GITHUB_WORKSPACE/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
-          
+          # cp $GITHUB_WORKSPACE/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
+          # 强行注入你的原厂专属图纸 (注意这里加上了 Config/ 路径)
+          cp $GITHUB_WORKSPACE/Config/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
+
           # 激活图纸环境并编译模块
           make -C $KERNEL_DIR ARCH=arm64 modules_prepare
           make -C $KERNEL_DIR M=$GITHUB_WORKSPACE modules
