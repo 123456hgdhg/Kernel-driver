@@ -1,4 +1,4 @@
-obj-m += my_hack.o
+obj-m += my_driver.o
 PWD := $(shell pwd)
 
 all:
