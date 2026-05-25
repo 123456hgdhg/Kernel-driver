@@ -24,7 +24,7 @@ jobs:
             android-ndk-r23c
             kernel_src
           # 缓存钥匙
-          key: kernel-env-5.4-v4
+          key: kernel-env-5.4-v4.1
 
       - name: 4. 下载 NDK 🚀
         if: steps.cache-env.outputs.cache-hit != 'true'
