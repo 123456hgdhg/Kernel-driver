@@ -23,6 +23,7 @@ jobs:
           path: |
             android-ndk-r23c
             kernel_src
+          # 🚨 强制废弃旧缓存，更新为 v3，从零开始大扫除！
           key: kernel-env-5.4-v3
 
       - name: 4. 按需下载 NDK (缓存未命中时执行) 🚀
@@ -58,12 +59,15 @@ jobs:
           # 强行注入你的原厂专属图纸
           cp $GITHUB_WORKSPACE/Config/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
           
-          # 激活图纸环境（附加 LLVM=1 全面接管编译链！）
+          # 🚨 新增这行：让内核读取 .config 并自动补全缺失的系统默认配置！
+          make -C $KERNEL_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- olddefconfig
+          
+          # 激活图纸环境
           make -C $KERNEL_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules_prepare
           
           # 编译我们自己的外挂驱动！
           make -C $KERNEL_DIR M=$GITHUB_WORKSPACE ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules
-
+          
       - name: 8. 提取战利品 🏆
         uses: actions/upload-artifact@v4
         with:
