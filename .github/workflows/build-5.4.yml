@@ -1,4 +1,4 @@
-name: Build 5.4 Kernel Module (Cached)
+name: Build Clean 5.4 Kernel Module
 
 on:
   workflow_dispatch: 
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04 
     
     steps:
-      - name: 1. 检出你的驱动源码 💾
+      - name: 1. 检出驱动源码 💾
         uses: actions/checkout@v4
 
       - name: 2. 安装编译核心依赖 📦
@@ -16,31 +16,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential bc bison flex libssl-dev lld
 
-      - name: 3. 尝试挂载云端环境缓存 📦
-        uses: actions/cache@v5
+      - name: 3. 挂载云端环境缓存 📦
+        uses: actions/cache@v4
         id: cache-env
         with:
           path: |
             android-ndk-r23c
             kernel_src
-          # 🚨 强制废弃旧缓存，更新为 v3，从零开始大扫除！
-          key: kernel-env-5.4-v3
+          # 缓存钥匙
+          key: kernel-env-5.4-v4
 
-      - name: 4. 按需下载 NDK (缓存未命中时执行) 🚀
+      - name: 4. 下载 NDK 🚀
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
           wget -q https://dl.google.com/android/repository/android-ndk-r23c-linux.zip
           unzip -q android-ndk-r23c-linux.zip
           
-      - name: 5. 按需下载内核源码 (缓存未命中时执行) 🗄️
+      - name: 5. 下载内核源码 🗄️
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
           git clone https://android.googlesource.com/kernel/common -b android12-5.4 --depth=1 kernel_src
 
-      - name: 6. 强制伪造完整的内核版本号 (核心突破口) 🏷️
+      - name: 6. 强制伪造 OPPO 版本号 🏷️
         run: |
           cd kernel_src
-          # 强行擦除官方默认版本，精准匹配 5.4.210-qgki-g5e917c3bcca0
           sed -i 's/^VERSION =.*/VERSION = 5/' Makefile
           sed -i 's/^PATCHLEVEL =.*/PATCHLEVEL = 4/' Makefile
           sed -i 's/^SUBLEVEL =.*/SUBLEVEL = 210/' Makefile
@@ -53,23 +52,23 @@ jobs:
           export KERNEL_DIR=$GITHUB_WORKSPACE/kernel_src
           export NDK_DIR=$GITHUB_WORKSPACE/android-ndk-r23c
           
-          # 将 NDK 的 LLVM 工具链强行注入到系统最高优先级环境变量中
           export PATH=$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           
-          # 强行注入你的原厂专属图纸
+          # 注入 OPPO 图纸
           cp $GITHUB_WORKSPACE/Config/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
           
-          # 🚨 新增这行：让内核读取 .config 并自动补全缺失的系统默认配置！
+          # 消化图纸并准备头文件
           make -C $KERNEL_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- olddefconfig
-          
-          # 激活图纸环境
           make -C $KERNEL_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules_prepare
           
-          # 编译我们自己的外挂驱动！
+          # 🚨 强行生成最高优先级的 Kbuild 派工单，彻底拒绝空跑！
+          echo "obj-m += my_driver.o" > $GITHUB_WORKSPACE/Kbuild
+          
+          # 执行编译！
           make -C $KERNEL_DIR M=$GITHUB_WORKSPACE ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules
           
-      - name: 8. 提取战利品 🏆
+      - name: 8. 提取 .ko 战利品 🏆
         uses: actions/upload-artifact@v4
         with:
-          name: My_OPPO_5_4_Driver
+          name: My_Clean_Driver
           path: ./*.ko
