@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y build-essential bc bison flex libssl-dev lld
 
       - name: 3. 尝试挂载云端环境缓存 📦
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: cache-env
         with:
           path: |
