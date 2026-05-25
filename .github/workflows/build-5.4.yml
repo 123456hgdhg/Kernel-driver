@@ -52,17 +52,18 @@ jobs:
           export KERNEL_DIR=$GITHUB_WORKSPACE/kernel_src
           export NDK_DIR=$GITHUB_WORKSPACE/android-ndk-r23c
           
-          export CC=$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/clang
-          export CROSS_COMPILE=$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-
-          export LD=ld.lld
+          # 将 NDK 的 LLVM 工具链强行注入到系统最高优先级环境变量中
+          export PATH=$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH
           
-          # 强行注入你的原厂专属图纸 (已加入 Config/ 路径)
+          # 强行注入你的原厂专属图纸
           cp $GITHUB_WORKSPACE/Config/OPPO_Reno10_5G_5.4.210-qgki-g5e917c3bcca0_config $KERNEL_DIR/.config
           
-          # 激活图纸环境并编译模块
-          make -C $KERNEL_DIR ARCH=arm64 modules_prepare
-          make -C $KERNEL_DIR M=$GITHUB_WORKSPACE modules
+          # 激活图纸环境（附加 LLVM=1 全面接管编译链！）
+          make -C $KERNEL_DIR ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules_prepare
           
+          # 编译我们自己的外挂驱动！
+          make -C $KERNEL_DIR M=$GITHUB_WORKSPACE ARCH=arm64 LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- modules
+
       - name: 8. 提取战利品 🏆
         uses: actions/upload-artifact@v4
         with:
