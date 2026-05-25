@@ -31,7 +31,7 @@ jobs:
           wget -q https://dl.google.com/android/repository/android-ndk-r23c-linux.zip
           unzip -q android-ndk-r23c-linux.zip
           
-            - name: 5. 按需下载内核源码 (缓存未命中时执行) 🗄️
+      - name: 5. 按需下载内核源码 (缓存未命中时执行) 🗄️
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
           git clone https://android.googlesource.com/kernel/common -b android12-5.4 --depth=1 kernel_src
